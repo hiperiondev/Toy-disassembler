@@ -3,12 +3,11 @@
  Name        : Toy-disassembler.c
  Author      : 
  Version     :
- Copyright   : Your copyright notice
- Description : Hello World in C, Ansi-style
+ Copyright   : Emiliano Augusto Gonzalez (egonzalez . hiperion @ gmail . com)
+ Description : Toy language disassembler
  ============================================================================
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "toy_disassembler.h"

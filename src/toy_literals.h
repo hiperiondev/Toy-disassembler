@@ -1,13 +1,7 @@
 #ifndef TOY_LITERALS_H_
 #define TOY_LITERALS_H_
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-
-struct toy_literal_s;
-
-typedef enum {
+typedef enum TOY_LITERAL_TYPE {
     TOY_LITERAL_NULL,       //
     TOY_LITERAL_BOOLEAN,    //
     TOY_LITERAL_INTEGER,    //

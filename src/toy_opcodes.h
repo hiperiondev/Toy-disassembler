@@ -1,7 +1,7 @@
 #ifndef TOY_OPCODES_H_
 #define TOY_OPCODES_H_
 
-typedef enum {
+typedef enum TOY_OPCODES {
     TOY_OP_EOF, //
 
     //do nothing
