@@ -265,6 +265,31 @@ static void toy_print_opcode(uint8_t op) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+#define S_OP(n) \
+		switch (OP_ARGS[opcode][n]) { \
+		    case 0: \
+		    break; \
+		    case 1: \
+		        printf(" b(%d)", readByte((*prg)->program, &pc)); \
+		    break; \
+		    case 2: \
+		        printf(" w(%d)", readWord((*prg)->program, &pc)); \
+		    break; \
+		    case 3: \
+		        printf(" i(%d)", readInt((*prg)->program, &pc)); \
+		    break; \
+		    case 4: \
+		        printf(" f(%f)", readFloat((*prg)->program, &pc)); \
+		    break; \
+		    case 5: \
+		        printf(" s(%s)", readString((*prg)->program, &pc)); \
+		    break; \
+		    default: \
+		        printf("ERROR, unknown argument type\n"); \
+		        exit(1); \
+		}
+
+
 void toy_disassemble_section(toy_program_t **prg, uint32_t pc, uint32_t len) {
     uint8_t opcode;
     while (pc < len) {
@@ -275,74 +300,9 @@ void toy_disassemble_section(toy_program_t **prg, uint32_t pc, uint32_t len) {
         if (opcode > TOY_OP_END_OPCODES)
             continue;
 
-        switch (OP_ARGS[opcode][0]) {
-            case 0:
-                break;
-            case 1:
-                printf(" byte(%d)", readByte((*prg)->program, &pc));
-                break;
-            case 2:
-                printf(" word(%d)", readWord((*prg)->program, &pc));
-                break;
-            case 3:
-                printf(" int(%d)", readInt((*prg)->program, &pc));
-                break;
-            case 4:
-                printf(" float(%f)", readFloat((*prg)->program, &pc));
-                break;
-            case 5:
-                printf(" string(%s)", readString((*prg)->program, &pc));
-                break;
-            default:
-                printf("ERROR, unknown argument type\n");
-                exit(1);
-        }
-
-        switch (OP_ARGS[opcode][1]) {
-            case 0:
-                break;
-            case 1:
-                printf(" byte(%d)", readByte((*prg)->program, &pc));
-                break;
-            case 2:
-                printf(" word(%d)", readWord((*prg)->program, &pc));
-                break;
-            case 3:
-                printf(" int(%d)", readInt((*prg)->program, &pc));
-                break;
-            case 4:
-                printf(" float(%f)", readFloat((*prg)->program, &pc));
-                break;
-            case 5:
-                printf(" string(%s)", readString((*prg)->program, &pc));
-                break;
-            default:
-                printf("ERROR, unknown argument type\n");
-                exit(1);
-        }
-
-        switch (OP_ARGS[opcode][2]) {
-            case 0:
-                break;
-            case 1:
-                printf(" byte(%d)", readByte((*prg)->program, &pc));
-                break;
-            case 2:
-                printf(" word(%d)", readWord((*prg)->program, &pc));
-                break;
-            case 3:
-                printf(" int(%d)", readInt((*prg)->program, &pc));
-                break;
-            case 4:
-                printf(" float(%f)", readFloat((*prg)->program, &pc));
-                break;
-            case 5:
-                printf(" string(%s)", readString((*prg)->program, &pc));
-                break;
-            default:
-                printf("ERROR, unknown argument type\n");
-                exit(1);
-        }
+        S_OP(0);
+        S_OP(1);
+        S_OP(2);
     }
 }
 
