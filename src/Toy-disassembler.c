@@ -13,8 +13,8 @@
 
 #include "toy_disassembler.h"
 
-int main(void) {
-	toy_disassembler("fib-memo.tb");
+int main(int argc, const char* argv[]) {
+	toy_disassembler(argv[1]);
 
 	return EXIT_SUCCESS;
 }

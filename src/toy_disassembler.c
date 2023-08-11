@@ -237,7 +237,7 @@ static uint8_t toy_load_file(const char *filename, toy_program_t **prg) {
         (*prg)->program[count++] = buf;
 
     (*prg)->len = fsize;
-    printf("File size: %zu\n", fsize);
+    printf("\nFile: %s, size: %zu\n", filename, fsize);
 
     fclose(f);
     return 0;
@@ -503,7 +503,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
 
             printf("    [ start fun ]");
             uint32_t fpc = (*prg)->pc;
-            toy_read_interpreter_sections(prg, &fpc, spaces + 4);
+            toy_read_interpreter_sections(prg, &fpc, spaces + 6);
             printf("    [ end fun ]\n");
 
             (*prg)->pc += size;
