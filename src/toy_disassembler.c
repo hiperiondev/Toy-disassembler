@@ -95,60 +95,69 @@ const char *LIT_STR[] = {
         EP(TOY_LITERAL_INDEX_BLANK), //
 };
 
+enum TOY_ARG_TYPE {
+    TOY_ARG_NONE,
+    TOY_ARG_BYTE,
+    TOY_ARG_WORD,
+    TOY_ARG_INTEGER,
+    TOY_ARG_FLOAT,
+    TOY_ARG_STRING
+};
+
 const uint8_t OP_ARGS[TOY_OP_END_OPCODES][3] = {
-        { 0, 0, 0 }, // TOY_OP_EOF
-        { 0, 0, 0 }, // TOY_OP_PASS
-        { 0, 0, 0 }, // TOY_OP_ASSERT
-        { 0, 0, 0 }, // TOY_OP_PRINT
-        { 1, 0, 0 }, // TOY_OP_LITERAL
-        { 2, 0, 0 }, // TOY_OP_LITERAL_LONG
-        { 0, 0, 0 }, // TOY_OP_LITERAL_RAW
-        { 0, 0, 0 }, // TOY_OP_NEGATE
-        { 0, 0, 0 }, // TOY_OP_ADDITION
-        { 0, 0, 0 }, // TOY_OP_SUBTRACTION
-        { 0, 0, 0 }, // TOY_OP_MULTIPLICATION
-        { 0, 0, 0 }, // TOY_OP_DIVISION
-        { 0, 0, 0 }, // TOY_OP_MODULO
-        { 0, 0, 0 }, // TOY_OP_GROUPING_BEGIN
-        { 0, 0, 0 }, // TOY_OP_GROUPING_END
-        { 0, 0, 0 }, // TOY_OP_SCOPE_BEGIN
-        { 0, 0, 0 }, // TOY_OP_SCOPE_END
-        { 0, 0, 0 }, // TOY_OP_TYPE_DECL_removed
-        { 0, 0, 0 }, // TOY_OP_TYPE_DECL_LONG_removed
-        { 1, 1, 0 }, // TOY_OP_VAR_DECL
-        { 2, 2, 0 }, // TOY_OP_VAR_DECL_LONG
-        { 1, 1, 0 }, // TOY_OP_FN_DECL
-        { 2, 2, 0 }, // TOY_OP_FN_DECL_LONG
-        { 0, 0, 0 }, // TOY_OP_VAR_ASSIGN
-        { 0, 0, 0 }, // TOY_OP_VAR_ADDITION_ASSIGN
-        { 0, 0, 0 }, // TOY_OP_VAR_SUBTRACTION_ASSIGN
-        { 0, 0, 0 }, // TOY_OP_VAR_MULTIPLICATION_ASSIGN
-        { 0, 0, 0 }, // TOY_OP_VAR_DIVISION_ASSIGN
-        { 0, 0, 0 }, // TOY_OP_VAR_MODULO_ASSIGN
-        { 0, 0, 0 }, // TOY_OP_TYPE_CAST
-        { 0, 0, 0 }, // TOY_OP_TYPE_OF
-        { 0, 0, 0 }, // TOY_OP_IMPORT
-        { 0, 0, 0 }, // TOY_OP_EXPORT_removed
-        { 0, 0, 0 }, // TOY_OP_INDEX
-        { 1, 0, 0 }, // TOY_OP_INDEX_ASSIGN
-        { 0, 0, 0 }, // TOY_OP_INDEX_ASSIGN_INTERMEDIATE
-        { 0, 0, 0 }, // TOY_OP_DOT
-        { 0, 0, 0 }, // TOY_OP_COMPARE_EQUAL
-        { 0, 0, 0 }, // TOY_OP_COMPARE_NOT_EQUAL
-        { 0, 0, 0 }, // TOY_OP_COMPARE_LESS
-        { 0, 0, 0 }, // TOY_OP_COMPARE_LESS_EQUAL
-        { 0, 0, 0 }, // TOY_OP_COMPARE_GREATER
-        { 0, 0, 0 }, // TOY_OP_COMPARE_GREATER_EQUAL
-        { 0, 0, 0 }, // TOY_OP_INVERT
-        { 2, 0, 0 }, // TOY_OP_AND
-        { 2, 0, 0 }, // TOY_OP_OR
-        { 2, 0, 0 }, // TOY_OP_JUMP
-        { 2, 0, 0 }, // TOY_OP_IF_FALSE_JUMP
-        { 0, 0, 0 }, // TOY_OP_FN_CALL
-        { 0, 0, 0 }, // TOY_OP_FN_RETURN
-        { 0, 0, 0 }, // TOY_OP_POP_STACK
-        { 0, 0, 0 }, // TOY_OP_TERNARY
-        { 0, 0, 0 }, // TOY_OP_FN_END
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_EOF
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_PASS
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_ASSERT
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_PRINT
+        { TOY_ARG_BYTE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_LITERAL
+        { TOY_ARG_WORD, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_LITERAL_LONG
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_LITERAL_RAW
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_NEGATE
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_ADDITION
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_SUBTRACTION
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_MULTIPLICATION
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_DIVISION
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_MODULO
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_GROUPING_BEGIN
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_GROUPING_END
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_SCOPE_BEGIN
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_SCOPE_END
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_TYPE_DECL_removed
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_TYPE_DECL_LONG_removed
+        { TOY_ARG_BYTE, TOY_ARG_BYTE, TOY_ARG_NONE }, // TOY_OP_VAR_DECL
+        { TOY_ARG_WORD, TOY_ARG_WORD, TOY_ARG_NONE }, // TOY_OP_VAR_DECL_LONG
+        { TOY_ARG_BYTE, TOY_ARG_BYTE, TOY_ARG_NONE }, // TOY_OP_FN_DECL
+        { TOY_ARG_WORD, TOY_ARG_WORD, TOY_ARG_NONE }, // TOY_OP_FN_DECL_LONG
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_VAR_ASSIGN
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_VAR_ADDITION_ASSIGN
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_VAR_SUBTRACTION_ASSIGN
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_VAR_MULTIPLICATION_ASSIGN
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_VAR_DIVISION_ASSIGN
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_VAR_MODULO_ASSIGN
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_TYPE_CAST
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_TYPE_OF
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_IMPORT
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_EXPORT_removed
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_INDEX
+        { TOY_ARG_BYTE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_INDEX_ASSIGN
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_INDEX_ASSIGN_INTERMEDIATE
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_DOT
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_COMPARE_EQUAL
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_COMPARE_NOT_EQUAL
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_COMPARE_LESS
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_COMPARE_LESS_EQUAL
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_COMPARE_GREATER
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_COMPARE_GREATER_EQUAL
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_INVERT
+        { TOY_ARG_WORD, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_AND
+        { TOY_ARG_WORD, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_OR
+        { TOY_ARG_WORD, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_JUMP
+        { TOY_ARG_WORD, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_IF_FALSE_JUMP
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_FN_CALL
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_FN_RETURN
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_POP_STACK
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_TERNARY
+        { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_FN_END
 };
 
 typedef struct toy_program_s {
@@ -186,10 +195,10 @@ static float readFloat(const uint8_t *tb, uint32_t *count) {
     return ret;
 }
 
-static const char* readString(const uint8_t *tb, uint32_t *count) {
+static char* readString(const uint8_t *tb, uint32_t *count) {
     const unsigned char *ret = tb + *count;
     *count += strlen((char*) ret) + 1; //+1 for null character
-    return (const char*) ret;
+    return (char*) ret;
 }
 
 static void consumeByte(uint8_t byte, uint8_t *tb, uint32_t *count) {
@@ -267,22 +276,27 @@ static void toy_print_opcode(uint8_t op) {
 
 #define S_OP(n) \
 		switch (OP_ARGS[opcode][n]) { \
-		    case 0: \
+		    case TOY_ARG_NONE: \
 		    break; \
-		    case 1: \
-		        printf(" b(%d)", readByte((*prg)->program, &pc)); \
+		    case TOY_ARG_BYTE: \
+		        uint = readByte((*prg)->program, &pc); \
+		        printf(" b(%d)", uint); \
 		    break; \
-		    case 2: \
-		        printf(" w(%d)", readWord((*prg)->program, &pc)); \
+		    case TOY_ARG_WORD: \
+		        uint = readWord((*prg)->program, &pc);\
+		        printf(" w(%d)", uint); \
 		    break; \
-		    case 3: \
-		        printf(" i(%d)", readInt((*prg)->program, &pc)); \
+		    case TOY_ARG_INTEGER: \
+		        intg = readInt((*prg)->program, &pc); \
+		        printf(" i(%d)", intg); \
 		    break; \
-		    case 4: \
-		        printf(" f(%f)", readFloat((*prg)->program, &pc)); \
+		    case TOY_ARG_FLOAT: \
+		        flt = readFloat((*prg)->program, &pc); \
+		        printf(" f(%f)", flt); \
 		    break; \
-		    case 5: \
-		        printf(" s(%s)", readString((*prg)->program, &pc)); \
+		    case TOY_ARG_STRING: \
+		        str = readString((*prg)->program, &pc); \
+		        printf(" s(%s)", str); \
 		    break; \
 		    default: \
 		        printf("ERROR, unknown argument type\n"); \
@@ -292,6 +306,11 @@ static void toy_print_opcode(uint8_t op) {
 
 void toy_disassemble_section(toy_program_t **prg, uint32_t pc, uint32_t len) {
     uint8_t opcode;
+    uint32_t uint;
+    int32_t intg;
+    float flt;
+    char *str;
+
     while (pc < len) {
         opcode = (*prg)->program[pc];
         printf("\n[ %05d ](%03d) ", pc++, opcode);
