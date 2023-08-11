@@ -70,7 +70,7 @@ const char *OP_STR[] = {
         EP(TOY_OP_POP_STACK), //
         EP(TOY_OP_TERNARY), //
         EP(TOY_OP_FN_END), //
-};
+        };
 
 const char *LIT_STR[] = {
         EP(TOY_LITERAL_NULL), //
@@ -93,15 +93,15 @@ const char *LIT_STR[] = {
         EP(TOY_LITERAL_FUNCTION_NATIVE), //
         EP(TOY_LITERAL_FUNCTION_HOOK), //
         EP(TOY_LITERAL_INDEX_BLANK), //
-};
+        };
 
 enum TOY_ARG_TYPE {
-    TOY_ARG_NONE,
-    TOY_ARG_BYTE,
-    TOY_ARG_WORD,
-    TOY_ARG_INTEGER,
-    TOY_ARG_FLOAT,
-    TOY_ARG_STRING
+    TOY_ARG_NONE,    //
+    TOY_ARG_BYTE,    //
+    TOY_ARG_WORD,    //
+    TOY_ARG_INTEGER, //
+    TOY_ARG_FLOAT,   //
+    TOY_ARG_STRING   //
 };
 
 const uint8_t OP_ARGS[TOY_OP_END_OPCODES][3] = {
@@ -158,7 +158,7 @@ const uint8_t OP_ARGS[TOY_OP_END_OPCODES][3] = {
         { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_POP_STACK
         { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_TERNARY
         { TOY_ARG_NONE, TOY_ARG_NONE, TOY_ARG_NONE }, // TOY_OP_FN_END
-};
+        };
 
 typedef struct toy_program_s {
     uint8_t *program;
@@ -303,7 +303,6 @@ static void toy_print_opcode(uint8_t op) {
 		        exit(1); \
 		}
 
-
 void toy_disassemble_section(toy_program_t **prg, uint32_t pc, uint32_t len) {
     uint8_t opcode;
     uint32_t uint;
@@ -325,9 +324,7 @@ void toy_disassemble_section(toy_program_t **prg, uint32_t pc, uint32_t len) {
     }
 }
 
-#define LIT_ADD(a, b, c) \
-    b[c] = a; \
-    ++c;
+#define LIT_ADD(a, b, c)  b[c] = a;  ++c;
 
 #define SPC(n)  printf("%*s", n, "");
 
@@ -493,6 +490,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
 void toy_disassembler(const char *filename) {
     toy_program_t *prg;
 
