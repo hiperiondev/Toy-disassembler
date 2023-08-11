@@ -320,7 +320,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
 
     printf("\n");
     SPC(spaces);
-    printf("[ Reading %d literals ]\n", literalCount);
+    printf("( Reading %d literals )\n", literalCount);
 
     for (int i = 0; i < literalCount; i++) {
         const unsigned char literalType = readByte((*prg)->program, pc);
@@ -487,9 +487,11 @@ void toy_disassembler(const char *filename) {
 
     printf("\n---- [LITERALS] ----");
     toy_read_interpreter_sections(&prg, &(prg->pc), 0);
+    printf("-- [END LITERALS] --\n");
 
     printf("\n---- [PROGRAM] ----");
     toy_disassemble_section(&prg, prg->pc, prg->len);
+    printf("\n-- [END PROGRAM] --");
 
     printf("\n\n");
     toy_disassembler_deinit(&prg);
