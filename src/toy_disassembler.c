@@ -448,23 +448,23 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
     if (functionCount) {
         printf("\n");
         SPC(spaces);
-        printf("  ( fun count: %d, size: %d )\n", functionCount, functionSize);
+        printf("  ( fun count: %d, total size: %d )\n", functionCount, functionSize);
     }
 
+    uint32_t fcnt = 0;
     for (int i = 0; i < literal_count; i++) {
         if (literal_type[i] == TOY_LITERAL_FUNCTION_INTERMEDIATE) {
             size_t size = (size_t) readWord((*prg)->program, pc);
             SPC(spaces);
-            printf("    ( size: %zu )\n", size);
+            printf("    ( fun %d [size: %zu] )", fcnt, size);
             if ((*prg)->program[*pc + size - 1] != TOY_OP_FN_END) {
                 printf("ERROR: Failed to find function end");
                 exit(1);
             }
 
-            printf("    [ start fun ]");
             uint32_t fpc = (*prg)->pc;
             toy_read_interpreter_sections(prg, &fpc, spaces + 6);
-            printf("    [ end fun ]\n");
+            printf("    ( fun %d end )\n", fcnt++);
 
             (*prg)->pc += size;
         }
