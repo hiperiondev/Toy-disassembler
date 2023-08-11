@@ -104,7 +104,7 @@ const uint8_t OP_ARGS[TOY_OP_END_OPCODES][3] = {
         { 2, 0, 0 }, // TOY_OP_LITERAL_LONG
         { 0, 0, 0 }, // TOY_OP_LITERAL_RAW
         { 0, 0, 0 }, // TOY_OP_NEGATE
-        { 5, 0, 0 }, // TOY_OP_ADDITION
+        { 0, 0, 0 }, // TOY_OP_ADDITION
         { 0, 0, 0 }, // TOY_OP_SUBTRACTION
         { 0, 0, 0 }, // TOY_OP_MULTIPLICATION
         { 0, 0, 0 }, // TOY_OP_DIVISION
@@ -115,8 +115,8 @@ const uint8_t OP_ARGS[TOY_OP_END_OPCODES][3] = {
         { 0, 0, 0 }, // TOY_OP_SCOPE_END
         { 0, 0, 0 }, // TOY_OP_TYPE_DECL_removed
         { 0, 0, 0 }, // TOY_OP_TYPE_DECL_LONG_removed
-        { 1, 1, 5 }, // TOY_OP_VAR_DECL
-        { 2, 2, 5 }, // TOY_OP_VAR_DECL_LONG
+        { 1, 1, 0 }, // TOY_OP_VAR_DECL
+        { 2, 2, 0 }, // TOY_OP_VAR_DECL_LONG
         { 1, 1, 0 }, // TOY_OP_FN_DECL
         { 2, 2, 0 }, // TOY_OP_FN_DECL_LONG
         { 0, 0, 0 }, // TOY_OP_VAR_ASSIGN
