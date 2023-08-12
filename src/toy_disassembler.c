@@ -491,9 +491,11 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
                 SPC(spaces);
                 printf("| | |\n");
                 SPC(spaces + 4);
-                printf("| -- FUNCTION CODE --");
+                printf("| ------ CODE ------");
                 toy_disassemble_section(prg, fpc_start, fpc_end, spaces + 4);
                 printf("\n");
+                SPC(spaces + 4);
+                printf("| ---- END CODE ----\n");
 
                 fcnt++;
                 *pc += size;
@@ -517,13 +519,13 @@ void toy_disassembler(const char *filename) {
 
     consumeByte(TOY_OP_SECTION_END, prg->program, &(prg->pc));
 
-    printf("\n| ---- [LITERALS] ----");
+    printf("\n| ---- LITERALS ----");
     toy_read_interpreter_sections(&prg, &(prg->pc), 0);
-    printf("| -- [END LITERALS] --\n|");
+    printf("| -- END LITERALS --\n|");
 
-    printf("\n| ---- [PROGRAM] ----");
+    printf("\n| ---- PROGRAM ----");
     toy_disassemble_section(&prg, prg->pc, prg->len, 0);
-    printf("\n| -- [END PROGRAM] --");
+    printf("\n| -- END PROGRAM --");
 
     printf("\n\n");
     toy_disassembler_deinit(&prg);
