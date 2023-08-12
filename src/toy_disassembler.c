@@ -319,7 +319,7 @@ void toy_disassemble_section(toy_program_t **prg, uint32_t pc, uint32_t len, uin
         opcode = (*prg)->program[pc];
         printf("\n");
         SPC(spaces);
-        printf("[ %05d ](%03d) ", pc++, opcode);
+        printf("| [ %05d ](%03d) ", pc++, opcode);
         toy_print_opcode(opcode);
 
         if (opcode > TOY_OP_END_OPCODES)
@@ -339,7 +339,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
 
     printf("\n");
     SPC(spaces);
-    printf("( Reading %d literals )\n", literalCount);
+    printf("| ( Reading %d literals )\n", literalCount);
 
     for (int i = 0; i < literalCount; i++) {
         const unsigned char literalType = readByte((*prg)->program, pc);
@@ -348,14 +348,14 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
             case TOY_LITERAL_NULL:
                 LIT_ADD(TOY_LITERAL_NULL, literal_type, literal_count);
                 SPC(spaces);
-                printf("  ( null )\n");
+                printf("  | ( null )\n");
                 break;
 
             case TOY_LITERAL_BOOLEAN: {
                 const bool b = readByte((*prg)->program, pc);
                 LIT_ADD(TOY_LITERAL_BOOLEAN, literal_type, literal_count);
                 SPC(spaces);
-                printf("  ( boolean %s )\n", b ? "true" : "false");
+                printf("  | ( boolean %s )\n", b ? "true" : "false");
             }
                 break;
 
@@ -363,7 +363,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
                 const int d = readInt((*prg)->program, pc);
                 LIT_ADD(TOY_LITERAL_INTEGER, literal_type, literal_count);
                 SPC(spaces);
-                printf("  ( integer %d )\n", d);
+                printf("  | ( integer %d )\n", d);
             }
                 break;
 
@@ -371,7 +371,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
                 const float f = readFloat((*prg)->program, pc);
                 LIT_ADD(TOY_LITERAL_FLOAT, literal_type, literal_count);
                 SPC(spaces);
-                printf("  ( float %f )\n", f);
+                printf("  | ( float %f )\n", f);
             }
                 break;
 
@@ -379,7 +379,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
                 const char *s = readString((*prg)->program, pc);
                 LIT_ADD(TOY_LITERAL_STRING, literal_type, literal_count);
                 SPC(spaces);
-                printf("  ( string \"%s\" )\n", s);
+                printf("  | ( string \"%s\" )\n", s);
             }
                 break;
 
@@ -387,7 +387,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
             case TOY_LITERAL_ARRAY: {
                 unsigned short length = readWord((*prg)->program, pc);
                 SPC(spaces);
-                printf("  ( array ");
+                printf("  | ( array ");
                 for (int i = 0; i < length; i++) {
                     int index = readWord((*prg)->program, pc);
                     printf("%d ", index);
@@ -402,7 +402,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
             case TOY_LITERAL_DICTIONARY: {
                 unsigned short length = readWord((*prg)->program, pc);
                 SPC(spaces);
-                printf("  ( dictionary ");
+                printf("  | ( dictionary ");
                 for (int i = 0; i < length / 2; i++) {
                     int key = readWord((*prg)->program, pc);
                     int val = readWord((*prg)->program, pc);
@@ -417,7 +417,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
                 unsigned short index = readWord((*prg)->program, pc);
                 LIT_ADD(TOY_LITERAL_FUNCTION_INTERMEDIATE, literal_type, literal_count);
                 SPC(spaces);
-                printf("  ( function index: %d )\n", index);
+                printf("  | ( function index: %d )\n", index);
             }
                 break;
 
@@ -425,7 +425,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
                 const char *str = readString((*prg)->program, pc);
                 LIT_ADD(TOY_LITERAL_IDENTIFIER, literal_type, literal_count);
                 SPC(spaces);
-                printf("  ( identifier %s )\n", str);
+                printf("  | ( identifier %s )\n", str);
             }
                 break;
 
@@ -434,7 +434,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
                 uint8_t literalType = readByte((*prg)->program, pc);
                 uint8_t constant = readByte((*prg)->program, pc);
                 SPC(spaces);
-                printf("  ( type %s: %d)\n", (LIT_STR[literalType] + 12), constant);
+                printf("  | ( type %s: %d)\n", (LIT_STR[literalType] + 12), constant);
                 if (literalType == TOY_LITERAL_ARRAY) {
                     uint16_t vt = readWord((*prg)->program, pc);
                     SPC(spaces);
@@ -445,7 +445,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
                     uint8_t kt = readWord((*prg)->program, pc);
                     uint8_t vt = readWord((*prg)->program, pc);
                     SPC(spaces);
-                    printf("    ( dictionary: [%d, %d] )\n", kt, vt);
+                    printf("    | ( dictionary: [%d, %d] )\n", kt, vt);
                 }
                 LIT_ADD(literalType, literal_type, literal_count);
             }
@@ -454,7 +454,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
             case TOY_LITERAL_INDEX_BLANK:
                 LIT_ADD(TOY_LITERAL_INDEX_BLANK, literal_type, literal_count);
                 SPC(spaces);
-                printf("( blank )\n");
+                printf("    | ( blank )\n");
                 break;
         }
     }
@@ -465,9 +465,10 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
     int functionSize = readWord((*prg)->program, pc);
 
     if (functionCount) {
-        printf("\n");
         SPC(spaces);
-        printf("  ( fun count: %d, total size: %d )\n", functionCount, functionSize);
+        printf("  | \n");
+        SPC(spaces);
+        printf("  | ( fun count: %d, total size: %d )\n", functionCount, functionSize);
 
         uint32_t fcnt = 0;
         for (int i = 0; i < literal_count; i++) {
@@ -477,20 +478,21 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
                 uint32_t fpc_start = *pc;
                 uint32_t fpc_end = *pc + size - 1;
 
-                printf("\n");
                 SPC(spaces);
-                printf("      ( fun %d [ start: %d, end: %d ] )", fcnt, fpc_start, fpc_end);
+                printf("    | \n");
+                SPC(spaces);
+                printf("    | ( fun %d [ start: %d, end: %d ] )", fcnt, fpc_start, fpc_end);
                 if ((*prg)->program[*pc + size - 1] != TOY_OP_FN_END) {
                     printf("\nERROR: Failed to find function end\n");
                     exit(1);
                 }
 
-                toy_read_interpreter_sections(prg, &fpc_start, spaces + 6);
-
-                printf("\n");
-                SPC(spaces + 6);
-                printf("-- FUNCTION CODE --");
-                toy_disassemble_section(prg, fpc_start, fpc_end, spaces + 6);
+                toy_read_interpreter_sections(prg, &fpc_start, spaces + 4);
+                SPC(spaces);
+                printf("    |\n");
+                SPC(spaces + 4);
+                printf("| -- FUNCTION CODE --");
+                toy_disassemble_section(prg, fpc_start, fpc_end, spaces + 4);
                 printf("\n");
 
                 fcnt++;
