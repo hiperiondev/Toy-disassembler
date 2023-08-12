@@ -438,14 +438,14 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
                 if (literalType == TOY_LITERAL_ARRAY) {
                     uint16_t vt = readWord((*prg)->program, pc);
                     SPC(spaces);
-                    printf("    ( array: %d\n)", vt);
+                    printf("| | | ( array: %d\n)", vt);
                 }
 
                 if (literalType == TOY_LITERAL_DICTIONARY) {
                     uint8_t kt = readWord((*prg)->program, pc);
                     uint8_t vt = readWord((*prg)->program, pc);
                     SPC(spaces);
-                    printf("  | | ( dictionary: [%d, %d] )\n", kt, vt);
+                    printf("| | | ( dictionary: [%d, %d] )\n", kt, vt);
                 }
                 LIT_ADD(literalType, literal_type, literal_count);
             }
@@ -454,7 +454,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
             case TOY_LITERAL_INDEX_BLANK:
                 LIT_ADD(TOY_LITERAL_INDEX_BLANK, literal_type, literal_count);
                 SPC(spaces);
-                printf("    | ( blank )\n");
+                printf("| | ( blank )\n");
                 break;
         }
     }
