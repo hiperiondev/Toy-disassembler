@@ -1,4 +1,4 @@
-//memoize the fib function
+//memorize the fib function
 var memo: [int : int] = [:];
 
 fn fib(n : int) {

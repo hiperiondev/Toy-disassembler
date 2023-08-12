@@ -14,7 +14,8 @@
 #include "toy_opcodes.h"
 #include "toy_literals.h"
 
-#define EP(x) [x] = #x
+#define SPC(n)  printf("%*s", n, "");
+#define EP(x)   [x] = #x
 
 const char *OP_STR[] = {
         EP(TOY_OP_EOF), //
@@ -166,6 +167,11 @@ typedef struct toy_program_s {
     uint32_t pc;
 } toy_program_t;
 
+typedef struct toy_func_op_s {
+    uint32_t start;
+    uint32_t end;
+} toy_func_op_t;
+
 static void toy_print_opcode(uint8_t op);
 
 static uint8_t readByte(const uint8_t *tb, uint32_t *count) {
@@ -280,30 +286,36 @@ static void toy_print_opcode(uint8_t op) {
 		    break; \
 		    case TOY_ARG_BYTE: \
 		        uint = readByte((*prg)->program, &pc); \
+		        SPC(spaces); \
 		        printf(" b(%d)", uint); \
 		    break; \
 		    case TOY_ARG_WORD: \
 		        uint = readWord((*prg)->program, &pc);\
+		        SPC(spaces); \
 		        printf(" w(%d)", uint); \
 		    break; \
 		    case TOY_ARG_INTEGER: \
 		        intg = readInt((*prg)->program, &pc); \
+		        SPC(spaces); \
 		        printf(" i(%d)", intg); \
 		    break; \
 		    case TOY_ARG_FLOAT: \
 		        flt = readFloat((*prg)->program, &pc); \
+		        SPC(spaces); \
 		        printf(" f(%f)", flt); \
 		    break; \
 		    case TOY_ARG_STRING: \
 		        str = readString((*prg)->program, &pc); \
+		        SPC(spaces); \
 		        printf(" s(%s)", str); \
 		    break; \
 		    default: \
+			    SPC(spaces); \
 		        printf("ERROR, unknown argument type\n"); \
 		        exit(1); \
 		}
 
-void toy_disassemble_section(toy_program_t **prg, uint32_t pc, uint32_t len) {
+void toy_disassemble_section(toy_program_t **prg, uint32_t pc, uint32_t len, uint8_t spaces) {
     uint8_t opcode;
     uint32_t uint;
     int32_t intg;
@@ -312,7 +324,9 @@ void toy_disassemble_section(toy_program_t **prg, uint32_t pc, uint32_t len) {
 
     while (pc < len) {
         opcode = (*prg)->program[pc];
-        printf("\n[ %05d ](%03d) ", pc++, opcode);
+        printf("\n");
+        SPC(spaces);
+        printf("[ %05d ](%03d) ", pc++, opcode);
         toy_print_opcode(opcode);
 
         if (opcode > TOY_OP_END_OPCODES)
@@ -325,10 +339,7 @@ void toy_disassemble_section(toy_program_t **prg, uint32_t pc, uint32_t len) {
 }
 
 #define LIT_ADD(a, b, c)  b[c] = a;  ++c;
-
-#define SPC(n)  printf("%*s", n, "");
-
-static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uint8_t spaces) {
+static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uint8_t spaces, bool consume_end) {
     uint32_t literal_count = 0;
     uint8_t literal_type[65536];
 
@@ -465,28 +476,29 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
         printf("\n");
         SPC(spaces);
         printf("  ( fun count: %d, total size: %d )\n", functionCount, functionSize);
-    }
 
-    uint32_t fcnt = 0;
-    for (int i = 0; i < literal_count; i++) {
-        if (literal_type[i] == TOY_LITERAL_FUNCTION_INTERMEDIATE) {
-            size_t size = (size_t) readWord((*prg)->program, pc);
-            SPC(spaces);
-            printf("    ( fun %d [size: %zu] )", fcnt, size);
-            if ((*prg)->program[*pc + size - 1] != TOY_OP_FN_END) {
-                printf("ERROR: Failed to find function end");
-                exit(1);
+        uint32_t fcnt = 0;
+        for (int i = 0; i < literal_count; i++) {
+            if (literal_type[i] == TOY_LITERAL_FUNCTION_INTERMEDIATE) {
+                size_t size = (size_t) readWord((*prg)->program, pc);
+
+                uint32_t fpc = *pc;
+                SPC(spaces);
+                printf("      ( fun %d [ start: %d, end: %zu ] )", fcnt, *pc, *pc + size - 1);
+                if ((*prg)->program[*pc + size - 1] != TOY_OP_FN_END) {
+                    printf("\nERROR: Failed to find function end\n");
+                    exit(1);
+                }
+                toy_read_interpreter_sections(prg, &fpc, spaces + 6, false);
+
+                fcnt++;
+                *pc += size;
             }
-
-            uint32_t fpc = (*prg)->pc;
-            toy_read_interpreter_sections(prg, &fpc, spaces + 6);
-            printf("    ( fun %d end )\n", fcnt++);
-
-            (*prg)->pc += size;
         }
     }
 
-    consumeByte(TOY_OP_SECTION_END, (*prg)->program, pc);
+    if (consume_end)
+        consumeByte(TOY_OP_SECTION_END, (*prg)->program, pc);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -503,11 +515,11 @@ void toy_disassembler(const char *filename) {
     consumeByte(TOY_OP_SECTION_END, prg->program, &(prg->pc));
 
     printf("\n---- [LITERALS] ----");
-    toy_read_interpreter_sections(&prg, &(prg->pc), 0);
+    toy_read_interpreter_sections(&prg, &(prg->pc), 0, true);
     printf("-- [END LITERALS] --\n");
 
     printf("\n---- [PROGRAM] ----");
-    toy_disassemble_section(&prg, prg->pc, prg->len);
+    toy_disassemble_section(&prg, prg->pc, prg->len, 0);
     printf("\n-- [END PROGRAM] --");
 
     printf("\n\n");
