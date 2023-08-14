@@ -324,7 +324,6 @@ static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t l
     }
 
     uint32_t pc_start = pc;
-
     while (pc < len) {
         opcode = (*prg)->program[pc];
         printf("\n");
@@ -480,6 +479,9 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
     }
 
     consumeByte(DIS_OP_SECTION_END, (*prg)->program, pc);
+
+    SPC(spaces);
+    printf("| ( end literals )\n");
 
     int functionCount = readWord((*prg)->program, pc);
     int functionSize = readWord((*prg)->program, pc);
