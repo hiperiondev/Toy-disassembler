@@ -323,11 +323,13 @@ static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t l
         printf("| [args literal %d, rets literal %d]", args, rets);
     }
 
+    uint32_t pc_start = pc;
+
     while (pc < len) {
         opcode = (*prg)->program[pc];
         printf("\n");
         SPC(spaces);
-        printf("| [ %05d ](%03d) ", pc++, opcode);
+        printf("| [ %05d ](%03d) ", (pc++) - pc_start, opcode);
         dis_print_opcode(opcode);
 
         if (opcode > DIS_OP_END_OPCODES)
