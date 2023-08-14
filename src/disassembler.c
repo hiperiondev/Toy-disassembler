@@ -2,7 +2,7 @@
  * disassembler.c
  *
  *  Created on: 10 ago. 2023
- *      Original Author: Emiliano AUgusto Gonzalez (egonzalez . hiperion @ gmail . com)
+ *      Original Author: Emiliano Augusto Gonzalez (egonzalez . hiperion @ gmail . com)
  * 
  * Further modified by Kayne Ruse, and added to the Toy Programming Language tool repository.
  */
@@ -339,7 +339,7 @@ static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t l
 }
 
 #define LIT_ADD(a, b, c)  b[c] = a;  ++c;
-static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uint8_t spaces) {
+static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uint8_t spaces, char *tree) {
     uint32_t literal_count = 0;
     uint8_t literal_type[65536];
 
@@ -488,26 +488,33 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
         SPC(spaces);
         printf("| | ( fun count: %d, total size: %d )\n", functionCount, functionSize);
 
-        uint32_t fcnt = 0;
-        for (uint32_t i = 0; i < literal_count; i++) {
+		uint32_t fcnt = 0;
+		char tree_local[2048];
+
+		for (uint32_t i = 0; i < literal_count; i++) {
             if (literal_type[i] == DIS_LITERAL_FUNCTION_INTERMEDIATE) {
                 size_t size = (size_t) readWord((*prg)->program, pc);
 
                 uint32_t fpc_start = *pc;
                 uint32_t fpc_end = *pc + size - 1;
 
+				tree_local[0] = '\0';
+				sprintf(tree_local, "%s.%d",tree, fcnt);
+				if (tree_local[0] == '.')
+					memcpy(tree_local, tree_local + 1, strlen(tree_local));
                 SPC(spaces);
                 printf("| | |\n");
                 SPC(spaces);
-                printf("| | | ( fun %d [ start: %d, end: %d ] )", fcnt, fpc_start, fpc_end);
+                printf("| | | ( fun %s [ start: %d, end: %d ] )", tree_local, fpc_start, fpc_end);
                 if ((*prg)->program[*pc + size - 1] != DIS_OP_FN_END) {
                     printf("\nERROR: Failed to find function end\n");
                     exit(1);
                 }
 
-                dis_read_interpreter_sections(prg, &fpc_start, spaces + 4);
+                dis_read_interpreter_sections(prg, &fpc_start, spaces + 4, tree_local);
                 SPC(spaces);
                 printf("| | |\n");
+
                 SPC(spaces + 4);
                 printf("| ------ CODE ------");
                 dis_disassemble_section(prg, fpc_start, fpc_end, spaces + 4, true);
@@ -538,7 +545,7 @@ void disassemble(const char *filename) {
     consumeByte(DIS_OP_SECTION_END, prg->program, &(prg->pc));
 
     printf("\n| ---- LITERALS ----");
-    dis_read_interpreter_sections(&prg, &(prg->pc), 0);
+    dis_read_interpreter_sections(&prg, &(prg->pc), 0, "");
     printf("| -- END LITERALS --\n|");
 
     printf("\n| ---- PROGRAM ----");

@@ -2,7 +2,7 @@
  * disassembler.c
  *
  *  Created on: 10 ago. 2023
- *      Original Author: Emiliano AUgusto Gonzalez (egonzalez . hiperion @ gmail . com)
+ *      Original Author: Emiliano Augusto Gonzalez (egonzalez . hiperion @ gmail . com)
  *
  * Further modified by Kayne Ruse, and added to the Toy Programming Language tool repository.
  */
