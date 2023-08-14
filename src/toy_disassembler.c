@@ -272,7 +272,7 @@ static void toy_print_opcode(uint8_t op) {
     }
 
     if (op < TOY_OP_END_OPCODES)
-        printf((OP_STR[op] + 7));
+        printf("%s", (OP_STR[op] + 7));
     else
         printf("(OP UNKNOWN [%c])", op);
 }
@@ -308,12 +308,21 @@ static void toy_print_opcode(uint8_t op) {
 		        exit(1); \
 		}
 
-void toy_disassemble_section(toy_program_t **prg, uint32_t pc, uint32_t len, uint8_t spaces) {
+void toy_disassemble_section(toy_program_t **prg, uint32_t pc, uint32_t len, uint8_t spaces, bool isFunction) {
     uint8_t opcode;
     uint32_t uint;
     int32_t intg;
     float flt;
     char *str;
+
+    //first 4 bytes of the program section within a function are actually specifying the parameter and return lists
+    if (isFunction) {
+        printf("\n");
+        uint16_t args = readWord((*prg)->program, &pc);
+        uint16_t rets = readWord((*prg)->program, &pc);
+        SPC(spaces);
+        printf("| [args literal %d, rets literal %d]", args, rets);
+    }
 
     while (pc < len) {
         opcode = (*prg)->program[pc];
@@ -342,6 +351,8 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
     printf("| ( Reading %d literals )\n", literalCount);
 
     for (int i = 0; i < literalCount; i++) {
+        printf("%d\t", i);
+
         const unsigned char literalType = readByte((*prg)->program, pc);
 
         switch (literalType) {
@@ -437,15 +448,17 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
                 printf("| | ( type %s: %d)\n", (LIT_STR[literalType] + 12), constant);
                 if (literalType == TOY_LITERAL_ARRAY) {
                     uint16_t vt = readWord((*prg)->program, pc);
+                    printf("\t");
                     SPC(spaces);
-                    printf("| | | ( array: %d\n)", vt);
+                    printf("| | | ( subtype: %d)\n", vt);
                 }
 
                 if (literalType == TOY_LITERAL_DICTIONARY) {
                     uint8_t kt = readWord((*prg)->program, pc);
                     uint8_t vt = readWord((*prg)->program, pc);
+                    printf("\t");
                     SPC(spaces);
-                    printf("| | | ( dictionary: [%d, %d] )\n", kt, vt);
+                    printf("| | | ( subtype: [%d, %d] )\n", kt, vt);
                 }
                 LIT_ADD(literalType, literal_type, literal_count);
             }
@@ -492,7 +505,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
                 printf("| | |\n");
                 SPC(spaces + 4);
                 printf("| ------ CODE ------");
-                toy_disassemble_section(prg, fpc_start, fpc_end, spaces + 4);
+                toy_disassemble_section(prg, fpc_start, fpc_end, spaces + 4, true);
                 printf("\n");
                 SPC(spaces + 4);
                 printf("| ---- END CODE ----\n");
@@ -524,7 +537,7 @@ void toy_disassembler(const char *filename) {
     printf("| -- END LITERALS --\n|");
 
     printf("\n| ---- PROGRAM ----");
-    toy_disassemble_section(&prg, prg->pc, prg->len, 0);
+    toy_disassemble_section(&prg, prg->pc, prg->len, 0, false);
     printf("\n| -- END PROGRAM --");
 
     printf("\n\n");
