@@ -520,11 +520,11 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                 printf("| | |\n");
 
                 SPC(spaces + 4);
-                printf("| ------ CODE ------");
+                printf("| ------ ( code ) ------");
                 dis_disassemble_section(prg, fpc_start, fpc_end, spaces + 4, true);
                 printf("\n");
                 SPC(spaces + 4);
-                printf("| ---- END CODE ----\n");
+                printf("| ---- ( end code ) ----\n");
 
                 fcnt++;
                 *pc += size;
@@ -548,13 +548,13 @@ void disassemble(const char *filename) {
 
     consumeByte(DIS_OP_SECTION_END, prg->program, &(prg->pc));
 
-    printf("\n| ---- LITERALS ----");
+    printf("\n| ---- ( literals ) ----");
     dis_read_interpreter_sections(&prg, &(prg->pc), 0, "");
-    printf("| -- END LITERALS --\n|");
+    printf("| -- ( end literals) --\n|");
 
-    printf("\n| ---- PROGRAM ----");
+    printf("\n| ---- ( main code ) ----");
     dis_disassemble_section(&prg, prg->pc, prg->len, 0, false);
-    printf("\n| -- END PROGRAM --");
+    printf("\n| -- ( end main code ) --");
 
     printf("\n\n");
     dis_disassembler_deinit(&prg);
