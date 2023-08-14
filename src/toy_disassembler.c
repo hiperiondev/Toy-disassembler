@@ -14,7 +14,7 @@
 #include "toy_opcodes.h"
 #include "toy_literals.h"
 
-#define SPC(n)  printf("%.*s", n, "| | | | | | | | | | | | | | | | | | | | | | | |");
+#define SPC(n)  printf("%.*s", n, "| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |");
 #define EP(x)   [x] = #x
 
 const char *OP_STR[] = {
@@ -212,8 +212,6 @@ static void consumeByte(uint8_t byte, uint8_t *tb, uint32_t *count) {
         exit(1);
     }
 
-    //printf("\n[ %05d ](%03d) ", *count, byte);
-    //toy_print_opcode(byte);
     *count += 1;
 }
 
@@ -351,7 +349,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
     printf("| ( Reading %d literals )\n", literalCount);
 
     for (int i = 0; i < literalCount; i++) {
-        printf("%d\t", i);
+        //printf("%d\t", i);
 
         const unsigned char literalType = readByte((*prg)->program, pc);
 
@@ -448,7 +446,7 @@ static void toy_read_interpreter_sections(toy_program_t **prg, uint32_t *pc, uin
                 printf("| | ( type %s: %d)\n", (LIT_STR[literalType] + 12), constant);
                 if (literalType == TOY_LITERAL_ARRAY) {
                     uint16_t vt = readWord((*prg)->program, pc);
-                    printf("\t");
+                    //printf("\t");
                     SPC(spaces);
                     printf("| | | ( subtype: %d)\n", vt);
                 }
