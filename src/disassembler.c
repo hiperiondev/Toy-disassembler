@@ -320,7 +320,7 @@ static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t l
         uint16_t args = readWord((*prg)->program, &pc);
         uint16_t rets = readWord((*prg)->program, &pc);
         SPC(spaces);
-        printf("| [args literal %d, rets literal %d]", args, rets);
+        printf("| ( args %d, rets %d )", args, rets);
     }
 
     uint32_t pc_start = pc;
@@ -357,14 +357,14 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             case DIS_LITERAL_NULL:
                 LIT_ADD(DIS_LITERAL_NULL, literal_type, literal_count);
                 SPC(spaces);
-                printf("| | [%d] ( null )\n", i);
+                printf("| | [%05d] ( null )\n", i);
                 break;
 
             case DIS_LITERAL_BOOLEAN: {
                 const bool b = readByte((*prg)->program, pc);
                 LIT_ADD(DIS_LITERAL_BOOLEAN, literal_type, literal_count);
                 SPC(spaces);
-                printf("| | [%d] ( boolean %s )\n", i, b ? "true" : "false");
+                printf("| | [%05d] ( boolean %s )\n", i, b ? "true" : "false");
             }
                 break;
 
@@ -372,7 +372,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                 const int d = readInt((*prg)->program, pc);
                 LIT_ADD(DIS_LITERAL_INTEGER, literal_type, literal_count);
                 SPC(spaces);
-                printf("| | [%d] ( integer %d )\n", i, d);
+                printf("| | [%05d] ( integer %d )\n", i, d);
             }
                 break;
 
@@ -380,7 +380,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                 const float f = readFloat((*prg)->program, pc);
                 LIT_ADD(DIS_LITERAL_FLOAT, literal_type, literal_count);
                 SPC(spaces);
-                printf("| | [%d] ( float %f )\n", i, f);
+                printf("| | [%05d] ( float %f )\n", i, f);
             }
                 break;
 
@@ -388,7 +388,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                 const char *s = readString((*prg)->program, pc);
                 LIT_ADD(DIS_LITERAL_STRING, literal_type, literal_count);
                 SPC(spaces);
-                printf("| | [%d] ( string \"%s\" )\n", i, s);
+                printf("| | [%05d] ( string \"%s\" )\n", i, s);
             }
                 break;
 
@@ -396,7 +396,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             case DIS_LITERAL_ARRAY: {
                 unsigned short length = readWord((*prg)->program, pc);
                 SPC(spaces);
-                printf("| | [%d] ( array ", i);
+                printf("| | [%05d] ( array ", i);
                 for (int i = 0; i < length; i++) {
                     int index = readWord((*prg)->program, pc);
                     printf("%d ", index);
@@ -404,7 +404,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     if (!(i % 15) && i != 0) {
                         printf("\n");
                         SPC(spaces);
-                        printf("| |               ");
+                        printf("| |                 ");
                                        }
                 }
                 printf(")\n");
@@ -416,7 +416,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             case DIS_LITERAL_DICTIONARY: {
                 unsigned short length = readWord((*prg)->program, pc);
                 SPC(spaces);
-                printf("| | [%d] ( dictionary ", i);
+                printf("| | [%05d] ( dictionary ", i);
                 for (int i = 0; i < length / 2; i++) {
                     int key = readWord((*prg)->program, pc);
                     int val = readWord((*prg)->program, pc);
@@ -424,7 +424,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     if(!(i % 5) && i != 0){
                         printf("\n");
                         SPC(spaces);
-                        printf("| |                   ");
+                        printf("| |                      ");
                     }
                 }
                 printf(")\n");
@@ -436,7 +436,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                 unsigned short index = readWord((*prg)->program, pc);
                 LIT_ADD(DIS_LITERAL_FUNCTION_INTERMEDIATE, literal_type, literal_count);
                 SPC(spaces);
-                printf("| | [%d] ( function index: %d )\n", i, index);
+                printf("| | [%05d] ( function index: %d )\n", i, index);
             }
                 break;
 
@@ -444,7 +444,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                 const char *str = readString((*prg)->program, pc);
                 LIT_ADD(DIS_LITERAL_IDENTIFIER, literal_type, literal_count);
                 SPC(spaces);
-                printf("| | [%d] ( identifier %s )\n", i, str);
+                printf("| | [%05d] ( identifier %s )\n", i, str);
             }
                 break;
 
@@ -453,18 +453,18 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                 uint8_t literalType = readByte((*prg)->program, pc);
                 uint8_t constant = readByte((*prg)->program, pc);
                 SPC(spaces);
-                printf("| | [%d] ( type %s: %d)\n", i, (LIT_STR[literalType] + 12), constant);
+                printf("| | [%05d] ( type %s: %d)\n", i, (LIT_STR[literalType] + 12), constant);
                 if (literalType == DIS_LITERAL_ARRAY) {
                     uint16_t vt = readWord((*prg)->program, pc);
                     SPC(spaces);
-                    printf("| | | ( subtype: %d)\n", vt);
+                    printf("| |           ( subtype: %d)\n", vt);
                 }
 
                 if (literalType == DIS_LITERAL_DICTIONARY) {
                     uint8_t kt = readWord((*prg)->program, pc);
                     uint8_t vt = readWord((*prg)->program, pc);
                     SPC(spaces);
-                    printf("| | | ( subtype: [%d, %d] )\n", kt, vt);
+                    printf("| |           ( subtype: [%d, %d] )\n", kt, vt);
                 }
                 LIT_ADD(literalType, literal_type, literal_count);
             }
@@ -473,7 +473,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             case DIS_LITERAL_INDEX_BLANK:
                 LIT_ADD(DIS_LITERAL_INDEX_BLANK, literal_type, literal_count);
                 SPC(spaces);
-                printf("| | [%d] ( blank )\n", i);
+                printf("| | [%05d] ( blank )\n", i);
                 break;
         }
     }
