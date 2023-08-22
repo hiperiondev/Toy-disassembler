@@ -543,7 +543,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void disassemble(const char *filename) {
+void disassemble(const char *filename, bool alt_fmt) {
     dis_program_t *prg;
 
     dis_disassembler_init(&prg);
