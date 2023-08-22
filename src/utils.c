@@ -43,6 +43,7 @@ void dequeue(void) {
 	else
 		queue_front = queue_front->next;
 
+	free(temp->data);
 	free(temp);
 }
 
