@@ -12,34 +12,34 @@
 
 #include "disassembler_utils.h"
 
-void dis_enqueue(void *x, queue_node_t *queue_front, queue_node_t *queue_rear) {
+void dis_enqueue(void *x, queue_node_t **queue_front, queue_node_t **queue_rear) {
 	queue_node_t *temp;
 
 	temp = (queue_node_t*) malloc(sizeof(struct queue_node_s));
 	temp->data = x;
 	temp->next = NULL;
 
-	if (queue_front == NULL && queue_rear == NULL) {
-		queue_front = queue_rear = temp;
+	if ((*queue_front) == NULL && (*queue_rear) == NULL) {
+		(*queue_front) = (*queue_rear) = temp;
 		return;
 	}
-	queue_rear->next = temp;
-	queue_rear = temp;
+	(*queue_rear)->next = temp;
+	(*queue_rear) = temp;
 
 }
 
-void dis_dequeue(queue_node_t *queue_front, queue_node_t *queue_rear) {
-	struct queue_node_s *temp = queue_front;
+void dis_dequeue(queue_node_t **queue_front, queue_node_t **queue_rear) {
+	struct queue_node_s *temp = (*queue_front);
 
-	if (queue_front == NULL) {
+	if ((*queue_front) == NULL) {
 		printf("Error : QUEUE is empty!!");
 		return;
 	}
-	if (queue_front == queue_rear)
-		queue_front = queue_rear = NULL;
+	if ((*queue_front) == (*queue_rear))
+	    (*queue_front) = (*queue_rear) = NULL;
 
 	else
-		queue_front = queue_front->next;
+	    (*queue_front) = (*queue_front)->next;
 
 	free(temp->data);
 	free(temp);

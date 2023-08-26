@@ -178,6 +178,8 @@ typedef struct fun_code_s {
 uint32_t jump_label;
 queue_node_t *function_queue_front = NULL;
 queue_node_t *function_queue_rear = NULL;
+queue_node_t *literal_queue_front = NULL;
+queue_node_t *literal_queue_rear = NULL;
 
 static void dis_print_opcode(uint8_t op);
 
@@ -756,7 +758,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     strcpy(fun->fun, tree_local);
                     fun->start = fpc_start;
                     fun->len = fpc_end;
-                    dis_enqueue((void*) fun, function_queue_front, function_queue_rear);
+                    dis_enqueue((void*) fun, &function_queue_front, &function_queue_rear);
                 }
 
                 fcnt++;
@@ -818,7 +820,7 @@ void disassemble(const char *filename, options_t config) {
 
             dis_disassemble_section(&prg, fun->start, fun->len, 0, true, config);
 
-            dis_dequeue(function_queue_front, function_queue_rear);
+            dis_dequeue(&function_queue_front, &function_queue_rear);
             printf("\n");
         }
 

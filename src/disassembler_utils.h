@@ -15,7 +15,7 @@ typedef struct queue_node_s {
 	struct queue_node_s *next;
 } queue_node_t;
 
-void dis_enqueue(void *x, queue_node_t *queue_front, queue_node_t *queue_rear);
-void dis_dequeue(queue_node_t *queue_front, queue_node_t *queue_rear);
+void dis_enqueue(void *x, queue_node_t **queue_front, queue_node_t **queue_rear);
+void dis_dequeue(queue_node_t **queue_front, queue_node_t **queue_rear);
 
 #endif /* UTILS_H_ */
