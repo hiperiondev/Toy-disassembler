@@ -12,12 +12,10 @@
 
 #include "disassembler_utils.h"
 
-struct disassembler_node_s *queue_front, *queue_rear;
+void dis_enqueue(void *x, queue_node_t *queue_front, queue_node_t *queue_rear) {
+	queue_node_t *temp;
 
-void disassembler_enqueue(void *x) {
-	struct disassembler_node_s *temp;
-
-	temp = (struct disassembler_node_s*) malloc(sizeof(struct disassembler_node_s));
+	temp = (queue_node_t*) malloc(sizeof(struct queue_node_s));
 	temp->data = x;
 	temp->next = NULL;
 
@@ -30,8 +28,8 @@ void disassembler_enqueue(void *x) {
 
 }
 
-void disassembler_dequeue(void) {
-	struct disassembler_node_s *temp = queue_front;
+void dis_dequeue(queue_node_t *queue_front, queue_node_t *queue_rear) {
+	struct queue_node_s *temp = queue_front;
 
 	if (queue_front == NULL) {
 		printf("Error : QUEUE is empty!!");
@@ -45,8 +43,4 @@ void disassembler_dequeue(void) {
 
 	free(temp->data);
 	free(temp);
-}
-
-void* disassembler_front(void) {
-	return queue_front->data;
 }

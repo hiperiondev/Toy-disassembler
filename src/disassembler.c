@@ -176,6 +176,8 @@ typedef struct fun_code_s {
 } fun_code_t;
 
 uint32_t jump_label;
+queue_node_t *function_queue_front = NULL;
+queue_node_t *function_queue_rear = NULL;
 
 static void dis_print_opcode(uint8_t op);
 
@@ -322,7 +324,7 @@ static void dis_print_opcode(uint8_t op) {
 		        exit(1); \
 		}
 
-static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t len, uint8_t spaces, bool is_function, bool alt_fmt) {
+static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t len, uint8_t spaces, bool is_function, options_t config) {
     uint8_t opcode = 0;
     uint16_t uint = 0;
     int32_t intg = 0;
@@ -334,7 +336,7 @@ static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t l
         printf("\n");
         uint16_t args = readWord((*prg)->program, &pc);
         uint16_t rets = readWord((*prg)->program, &pc);
-        if (!alt_fmt) {
+        if (!config.alt_format_flag) {
             SPC(spaces);
             printf("| ");
         } else
@@ -346,7 +348,7 @@ static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t l
     uint32_t labels_qty = 0;
     uint16_t *label_line = NULL;
     uint32_t *label_id = NULL;
-    if (alt_fmt) {
+    if (config.alt_format_flag) {
         // first pass: search jump labels
         label_line = malloc(sizeof(uint16_t));
         label_id = malloc(sizeof(uint32_t));
@@ -356,7 +358,7 @@ static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t l
             label_id = realloc(label_id, (labels_qty + 1) * sizeof(uint32_t));
 
             opcode = (*prg)->program[pc];
-            if (alt_fmt && (opcode == 255 || opcode == 0)) {
+            if (config.alt_format_flag && (opcode == 255 || opcode == 0)) {
                 ++pc;
                 continue;
             }
@@ -383,7 +385,7 @@ static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t l
     while (pc < len) {
         opcode = (*prg)->program[pc];
 
-        if (alt_fmt) {
+        if (config.alt_format_flag) {
             for (uint32_t lbl = 0; lbl < labels_qty; lbl++) {
                 if (pc - pc_start == label_line[lbl]) {
                     printf("\nJL_%04d_:", label_id[lbl]);
@@ -392,13 +394,13 @@ static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t l
             }
         }
 
-        if (alt_fmt && (opcode == 255 || opcode == 0)) {
+        if (config.alt_format_flag && (opcode == 255 || opcode == 0)) {
             ++pc;
             continue;
         }
 
         printf("\n");
-        if (!alt_fmt) {
+        if (!config.alt_format_flag) {
             SPC(spaces);
             printf("| ");
             printf("[%05d](%03d) ", (pc++) - pc_start, opcode);
@@ -412,7 +414,7 @@ static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t l
         if (opcode >= DIS_OP_END_OPCODES)
             continue;
 
-        if (alt_fmt) {
+        if (config.alt_format_flag) {
             if (OP_ARGS[opcode][2]) {
                 uint = readWord((*prg)->program, &pc);
                 for (uint32_t lbl = 0; lbl < labels_qty; lbl++) {
@@ -429,24 +431,24 @@ static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t l
         S_OP(1, 1);
     }
 
-    if (alt_fmt) {
+    if (config.alt_format_flag) {
         free(label_line);
         free(label_id);
     }
 
-    if (alt_fmt && (*prg)->program[pc - 5] != DIS_OP_FN_RETURN)
+    if (config.alt_format_flag && (*prg)->program[pc - 5] != DIS_OP_FN_RETURN)
         printf("\n    FN_RETURN w(0)");
 }
 
 #define LIT_ADD(a, b, c)  b[c] = a;  ++c;
-static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uint8_t spaces, char *tree, bool alt_fmt) {
+static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uint8_t spaces, char *tree, options_t config) {
     uint32_t literal_count = 0;
     uint8_t literal_type[65536];
 
     const unsigned short literalCount = readWord((*prg)->program, pc);
 
     printf("\n");
-    if (!alt_fmt) {
+    if (!config.alt_format_flag) {
         SPC(spaces);
         printf("| ");
         printf("  ");
@@ -459,7 +461,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
         switch (literalType) {
             case DIS_LITERAL_NULL:
                 LIT_ADD(DIS_LITERAL_NULL, literal_type, literal_count);
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     SPC(spaces);
                     printf("| | ");
                     printf("[%05d] ( null )\n", i);
@@ -473,7 +475,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             case DIS_LITERAL_BOOLEAN: {
                 const bool b = readByte((*prg)->program, pc);
                 LIT_ADD(DIS_LITERAL_BOOLEAN, literal_type, literal_count);
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     SPC(spaces);
                     printf("| | ");
                     printf("[%05d] ( boolean %s )\n", i, b ? "true" : "false");
@@ -487,7 +489,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             case DIS_LITERAL_INTEGER: {
                 const int d = readInt((*prg)->program, pc);
                 LIT_ADD(DIS_LITERAL_INTEGER, literal_type, literal_count);
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     SPC(spaces);
                     printf("| | ");
                     printf("[%05d] ( integer %d )\n", i, d);
@@ -501,7 +503,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             case DIS_LITERAL_FLOAT: {
                 const float f = readFloat((*prg)->program, pc);
                 LIT_ADD(DIS_LITERAL_FLOAT, literal_type, literal_count);
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     SPC(spaces);
                     printf("| | ");
                     printf("[%05d] ( float %f )\n", i, f);
@@ -515,7 +517,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             case DIS_LITERAL_STRING: {
                 const char *s = readString((*prg)->program, pc);
                 LIT_ADD(DIS_LITERAL_STRING, literal_type, literal_count);
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     SPC(spaces);
                     printf("| | ");
                     printf("[%05d] ( string \"%s\" )\n", i, s);
@@ -529,7 +531,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             case DIS_LITERAL_ARRAY_INTERMEDIATE:
             case DIS_LITERAL_ARRAY: {
                 unsigned short length = readWord((*prg)->program, pc);
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     SPC(spaces);
                     printf("| | ");
                     printf("[%05d] ( array ", i);
@@ -544,7 +546,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     LIT_ADD(DIS_LITERAL_NULL, literal_type, literal_count);
                     if (!(i % 15) && i != 0) {
                         printf("\\\n");
-                        if (!alt_fmt) {
+                        if (!config.alt_format_flag) {
                             SPC(spaces);
                             printf("| | ");
                         } else
@@ -552,7 +554,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                         printf("           ");
                     }
                 }
-                if (!alt_fmt)
+                if (!config.alt_format_flag)
                     printf(")");
                 printf("\n");
 
@@ -563,7 +565,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             case DIS_LITERAL_DICTIONARY_INTERMEDIATE:
             case DIS_LITERAL_DICTIONARY: {
                 unsigned short length = readWord((*prg)->program, pc);
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     SPC(spaces);
                     printf("| | ");
                     printf("[%05d] ( dictionary ", i);
@@ -575,14 +577,14 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     int key = readWord((*prg)->program, pc);
                     int val = readWord((*prg)->program, pc);
 
-                    if (!alt_fmt)
+                    if (!config.alt_format_flag)
                         printf("(key: %d, val:%d) ", key, val);
                     else
                         printf("%d,%d ", key, val);
 
                     if (!(i % 5) && i != 0) {
                         printf("\\\n");
-                        if (!alt_fmt) {
+                        if (!config.alt_format_flag) {
                             SPC(spaces);
                             printf("| | ");
                         } else
@@ -590,7 +592,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                         printf("                ");
                     }
                 }
-                if (!alt_fmt)
+                if (!config.alt_format_flag)
                     printf(")");
                 printf("\n");
                 LIT_ADD(DIS_LITERAL_DICTIONARY, literal_type, literal_count);
@@ -600,7 +602,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             case DIS_LITERAL_FUNCTION: {
                 unsigned short index = readWord((*prg)->program, pc);
                 LIT_ADD(DIS_LITERAL_FUNCTION_INTERMEDIATE, literal_type, literal_count);
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     SPC(spaces);
                     printf("| | ");
                     printf("[%05d] ( function index: %d )\n", i, index);
@@ -614,7 +616,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             case DIS_LITERAL_IDENTIFIER: {
                 const char *str = readString((*prg)->program, pc);
                 LIT_ADD(DIS_LITERAL_IDENTIFIER, literal_type, literal_count);
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     SPC(spaces);
                     printf("| | ");
                     printf("[%05d] ( identifier %s )\n", i, str);
@@ -629,7 +631,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             case DIS_LITERAL_TYPE_INTERMEDIATE: {
                 uint8_t literalType = readByte((*prg)->program, pc);
                 uint8_t constant = readByte((*prg)->program, pc);
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     SPC(spaces);
                     printf("| | ");
                     printf("[%05d] ( type %s: %d)\n", i, (LIT_STR[literalType] + 12), constant);
@@ -640,7 +642,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
 
                 if (literalType == DIS_LITERAL_ARRAY) {
                     uint16_t vt = readWord((*prg)->program, pc);
-                    if (!alt_fmt) {
+                    if (!config.alt_format_flag) {
                         SPC(spaces);
                         printf("| | ");
                         printf("\n          ( subtype: %d)", vt);
@@ -651,7 +653,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                 } else if (literalType == DIS_LITERAL_DICTIONARY) {
                     uint8_t kt = readWord((*prg)->program, pc);
                     uint8_t vt = readWord((*prg)->program, pc);
-                    if (!alt_fmt) {
+                    if (!config.alt_format_flag) {
                         SPC(spaces);
                         printf("| | ");
                         printf("\n          ( subtype: [%d, %d] )", kt, vt);
@@ -668,7 +670,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
 
             case DIS_LITERAL_INDEX_BLANK:
                 LIT_ADD(DIS_LITERAL_INDEX_BLANK, literal_type, literal_count);
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     SPC(spaces);
                     printf("| | ");
                     printf("[%05d] ( blank )\n", i);
@@ -682,7 +684,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
 
     consumeByte(DIS_OP_SECTION_END, (*prg)->program, pc);
 
-    if (!alt_fmt) {
+    if (!config.alt_format_flag) {
         SPC(spaces);
         printf("| ");
         printf("--- ( end literal section ) ---\n");
@@ -692,7 +694,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
     int functionSize = readWord((*prg)->program, pc);
 
     if (functionCount) {
-        if (!alt_fmt) {
+        if (!config.alt_format_flag) {
             SPC(spaces);
             printf("|\n");
             SPC(spaces);
@@ -711,7 +713,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                 uint32_t fpc_end = *pc + size - 1;
 
                 tree_local[0] = '\0';
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     sprintf(tree_local, "%s.%d", tree, fcnt);
                     if (tree_local[0] == '_')
                         memcpy(tree_local, tree_local + 1, strlen(tree_local));
@@ -721,7 +723,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                         memcpy(tree_local, tree_local + 1, strlen(tree_local));
                 }
 
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     SPC(spaces);
                     printf("| |\n");
                     SPC(spaces);
@@ -735,15 +737,15 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     exit(1);
                 }
 
-                dis_read_interpreter_sections(prg, &fpc_start, spaces + 4, tree_local, alt_fmt);
+                dis_read_interpreter_sections(prg, &fpc_start, spaces + 4, tree_local, config);
 
-                if (!alt_fmt) {
+                if (!config.alt_format_flag) {
                     SPC(spaces);
                     printf("| | |\n");
                     SPC(spaces + 4);
                     printf("| ");
                     printf("--- ( reading code for %s ) ---", tree_local);
-                    dis_disassemble_section(prg, fpc_start, fpc_end, spaces + 4, true, alt_fmt);
+                    dis_disassemble_section(prg, fpc_start, fpc_end, spaces + 4, true, config);
                     printf("\n");
                     SPC(spaces + 4);
                     printf("| ");
@@ -754,7 +756,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     strcpy(fun->fun, tree_local);
                     fun->start = fpc_start;
                     fun->len = fpc_end;
-                    disassembler_enqueue((void*) fun);
+                    dis_enqueue((void*) fun, function_queue_front, function_queue_rear);
                 }
 
                 fcnt++;
@@ -762,7 +764,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
             }
         }
 
-        if (!alt_fmt) {
+        if (!config.alt_format_flag) {
             SPC(spaces);
             printf("|\n");
             SPC(spaces);
@@ -776,48 +778,47 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void disassemble(const char *filename, bool alt_fmt) {
+void disassemble(const char *filename, options_t config) {
     dis_program_t *prg;
-    queue_front = NULL;
-    queue_rear = NULL;
+
     jump_label = 0;
 
     dis_disassembler_init(&prg);
-    if (dis_load_file(filename, &prg, alt_fmt)) {
+    if (dis_load_file(filename, &prg, config.alt_format_flag)) {
         dis_disassembler_deinit(&prg);
         exit(1);
     }
 
-    dis_read_header(&prg, alt_fmt);
+    dis_read_header(&prg, config.alt_format_flag);
 
     printf("\n.start MAIN\n");
 
     consumeByte(DIS_OP_SECTION_END, prg->program, &(prg->pc));
 
-    if (alt_fmt)
+    if (config.alt_format_flag)
         printf("\nLIT_MAIN:");
-    dis_read_interpreter_sections(&prg, &(prg->pc), 0, "", alt_fmt);
-    if (!alt_fmt) {
+    dis_read_interpreter_sections(&prg, &(prg->pc), 0, "", config);
+    if (!config.alt_format_flag) {
         printf("|\n| ");
         printf("--- ( reading main code ) ---");
     } else
         printf("\nMAIN:");
-    dis_disassemble_section(&prg, prg->pc, prg->len, 0, false, alt_fmt);
-    if (!alt_fmt) {
+    dis_disassemble_section(&prg, prg->pc, prg->len, 0, false, config);
+    if (!config.alt_format_flag) {
         printf("\n| ");
         printf("--- ( end main code section ) ---");
     } else
         printf("\n");
 
-    if (alt_fmt) {
-        while (queue_front != NULL) {
-            fun_code_t *fun = (fun_code_t*) disassembler_front();
+    if (config.alt_format_flag) {
+        while (function_queue_front != NULL) {
+            fun_code_t *fun = (fun_code_t*) function_queue_front->data;
             printf("\nFUN_%s:", fun->fun);
             free(fun->fun);
 
-            dis_disassemble_section(&prg, fun->start, fun->len, 0, true, alt_fmt);
+            dis_disassemble_section(&prg, fun->start, fun->len, 0, true, config);
 
-            disassembler_dequeue();
+            dis_dequeue(function_queue_front, function_queue_rear);
             printf("\n");
         }
 

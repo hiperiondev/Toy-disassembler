@@ -10,15 +10,12 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
-struct disassembler_node_s {
+typedef struct queue_node_s {
 	void *data;
-	struct disassembler_node_s *next;
-};
+	struct queue_node_s *next;
+} queue_node_t;
 
-extern struct disassembler_node_s *queue_front, *queue_rear;
-
-void disassembler_enqueue(void *x);
-void disassembler_dequeue(void);
-void* disassembler_front(void);
+void dis_enqueue(void *x, queue_node_t *queue_front, queue_node_t *queue_rear);
+void dis_dequeue(queue_node_t *queue_front, queue_node_t *queue_rear);
 
 #endif /* UTILS_H_ */
