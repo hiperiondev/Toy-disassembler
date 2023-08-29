@@ -10,12 +10,16 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include <stdint.h>
+
 typedef struct queue_node_s {
 	void *data;
 	struct queue_node_s *next;
 } queue_node_t;
 
-void dis_enqueue(void *x, queue_node_t **queue_front, queue_node_t **queue_rear);
-void dis_dequeue(queue_node_t **queue_front, queue_node_t **queue_rear);
+void dis_enqueue(void *x, queue_node_t **queue_front, queue_node_t **queue_rear, uint32_t *len);
+void dis_dequeue(queue_node_t **queue_front, queue_node_t **queue_rear, uint32_t *len);
+
+void str_append(char **str, const char *app);
 
 #endif /* UTILS_H_ */

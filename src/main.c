@@ -48,5 +48,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	disassemble(argv[context.index], config);
+
 	return EXIT_SUCCESS;
 }

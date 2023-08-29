@@ -175,11 +175,18 @@ typedef struct fun_code_s {
     char *fun;
 } fun_code_t;
 
+typedef struct lit_s {
+    char *fun;
+    char *str;
+} *lit_t;
+
 uint32_t jump_label;
+uint32_t function_queue_len = 0;
+uint32_t lit_fn_queue_len = 0;
 queue_node_t *function_queue_front = NULL;
 queue_node_t *function_queue_rear = NULL;
-queue_node_t *literal_queue_front = NULL;
-queue_node_t *literal_queue_rear = NULL;
+queue_node_t *lit_fn_queue_front = NULL;
+queue_node_t *lit_fn_queue_rear = NULL;
 
 static void dis_print_opcode(uint8_t op);
 
@@ -342,7 +349,7 @@ static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t l
             SPC(spaces);
             printf("| ");
         } else
-            printf(".comment args:%d, rets:%d", args, rets);
+            printf("    .comment args:%d, rets:%d", args, rets);
     }
 
     uint32_t pc_start = pc;
@@ -446,16 +453,22 @@ static void dis_disassemble_section(dis_program_t **prg, uint32_t pc, uint32_t l
 static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uint8_t spaces, char *tree, options_t config) {
     uint32_t literal_count = 0;
     uint8_t literal_type[65536];
+    char *lit_str = NULL;
 
     const unsigned short literalCount = readWord((*prg)->program, pc);
 
-    printf("\n");
+    if(!config.group_flag)
+        printf("\n");
+
     if (!config.alt_format_flag) {
         SPC(spaces);
         printf("| ");
         printf("  ");
         printf("--- ( Reading %d literals from cache ) ---\n", literalCount);
     }
+
+    if (config.alt_format_flag)
+        lit_str = calloc(1, sizeof(char));
 
     for (int i = 0; i < literalCount; i++) {
         const unsigned char literalType = readByte((*prg)->program, pc);
@@ -468,8 +481,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     printf("| | ");
                     printf("[%05d] ( null )\n", i);
                 } else {
-                    printf("    ");
-                    printf(".lit NULL\n");
+                    str_append(&lit_str, "    .lit NULL\n");
                 }
 
                 break;
@@ -482,8 +494,10 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     printf("| | ");
                     printf("[%05d] ( boolean %s )\n", i, b ? "true" : "false");
                 } else {
-                    printf("    ");
-                    printf(".lit BOOLEAN %s\n", b ? "true" : "false");
+                    char bs[10];
+                    sprintf(bs, "%s\n", b ? "true" : "false");
+                    str_append(&lit_str, "    .lit BOOLEAN ");
+                    str_append(&lit_str, bs);
                 }
             }
                 break;
@@ -496,8 +510,10 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     printf("| | ");
                     printf("[%05d] ( integer %d )\n", i, d);
                 } else {
-                    printf("    ");
-                    printf(".lit INTEGER %d\n", d);
+                    char ds[20];
+                    sprintf(ds, "%d\n", d);
+                    str_append(&lit_str, "    .lit INTEGER ");
+                    str_append(&lit_str, ds);
                 }
             }
                 break;
@@ -510,8 +526,10 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     printf("| | ");
                     printf("[%05d] ( float %f )\n", i, f);
                 } else {
-                    printf("    ");
-                    printf(".lit FLOAT %f\n", f);
+                    char fs[20];
+                    sprintf(fs, "%f\n", f);
+                    str_append(&lit_str, "    .lit FLOAT ");
+                    str_append(&lit_str, fs);
                 }
             }
                 break;
@@ -524,8 +542,9 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     printf("| | ");
                     printf("[%05d] ( string \"%s\" )\n", i, s);
                 } else {
-                    printf("    ");
-                    printf(".lit STRING \"%s\"\n", s);
+                    str_append(&lit_str, "    .lit STRING \"");
+                    str_append(&lit_str, s);
+                    str_append(&lit_str, "\"\n");
                 }
             }
                 break;
@@ -538,27 +557,37 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     printf("| | ");
                     printf("[%05d] ( array ", i);
                 } else {
-                    printf("    ");
-                    printf(".lit ARRAY ");
+                    str_append(&lit_str, "    .lit ARRAY ");
                 }
 
                 for (int i = 0; i < length; i++) {
                     int index = readWord((*prg)->program, pc);
-                    printf("%d ", index);
+                    if (!config.alt_format_flag) {
+                        printf("%d ", index);
+                    } else {
+                        char ds[20];
+                        sprintf(ds, "%d ", index);
+                        str_append(&lit_str, ds);
+
+                    }
                     LIT_ADD(DIS_LITERAL_NULL, literal_type, literal_count);
                     if (!(i % 15) && i != 0) {
-                        printf("\\\n");
                         if (!config.alt_format_flag) {
+                            printf("\\\n");
                             SPC(spaces);
                             printf("| | ");
-                        } else
-                            printf("    ");
-                        printf("           ");
+                            printf("           ");
+                        } else {
+                            str_append(&lit_str, "\\\n               ");
+                        }
                     }
                 }
-                if (!config.alt_format_flag)
+                if (!config.alt_format_flag) {
                     printf(")");
-                printf("\n");
+                    printf("\n");
+                } else {
+                    str_append(&lit_str, "\n");
+                }
 
                 LIT_ADD(DIS_LITERAL_ARRAY, literal_type, literal_count);
             }
@@ -572,8 +601,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     printf("| | ");
                     printf("[%05d] ( dictionary ", i);
                 } else {
-                    printf("    ");
-                    printf(".lit DICTIONARY ");
+                    str_append(&lit_str, "    .lit DICTIONARY ");
                 }
                 for (int i = 0; i < length / 2; i++) {
                     int key = readWord((*prg)->program, pc);
@@ -581,22 +609,29 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
 
                     if (!config.alt_format_flag)
                         printf("(key: %d, val:%d) ", key, val);
-                    else
-                        printf("%d,%d ", key, val);
+                    else {
+                        char s[100];
+                        sprintf(s, "%d,%d ", key, val);
+                        str_append(&lit_str, s);
+                    }
 
                     if (!(i % 5) && i != 0) {
-                        printf("\\\n");
                         if (!config.alt_format_flag) {
+                            printf("\\\n");
                             SPC(spaces);
                             printf("| | ");
-                        } else
-                            printf("    ");
-                        printf("                ");
+                            printf("                ");
+                        } else {
+                            str_append(&lit_str, "\\\n                    ");
+                        }
                     }
                 }
-                if (!config.alt_format_flag)
+                if (!config.alt_format_flag) {
                     printf(")");
-                printf("\n");
+                    printf("\n");
+                } else {
+                    str_append(&lit_str, "\n");
+                }
                 LIT_ADD(DIS_LITERAL_DICTIONARY, literal_type, literal_count);
             }
                 break;
@@ -609,8 +644,9 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     printf("| | ");
                     printf("[%05d] ( function index: %d )\n", i, index);
                 } else {
-                    printf("    ");
-                    printf(".lit FUNCTION %d\n", index);
+                    char s[100];
+                    sprintf(s, "    .lit FUNCTION %d\n", index);
+                    str_append(&lit_str, s);
                 }
             }
                 break;
@@ -623,8 +659,9 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     printf("| | ");
                     printf("[%05d] ( identifier %s )\n", i, str);
                 } else {
-                    printf("    ");
-                    printf(".lit IDENTIFIER %s\n", str);
+                    str_append(&lit_str, "    .lit IDENTIFIER ");
+                    str_append(&lit_str, str);
+                    str_append(&lit_str, "\n");
                 }
             }
                 break;
@@ -638,8 +675,9 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     printf("| | ");
                     printf("[%05d] ( type %s: %d)\n", i, (LIT_STR[literalType] + 12), constant);
                 } else {
-                    printf("    ");
-                    printf(".lit TYPE %s %d", (LIT_STR[literalType] + 12), constant);
+                    char s[100];
+                    sprintf(s, ".lit TYPE %s %d", (LIT_STR[literalType] + 12), constant);
+                    str_append(&lit_str, s);
                 }
 
                 if (literalType == DIS_LITERAL_ARRAY) {
@@ -647,24 +685,31 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     if (!config.alt_format_flag) {
                         SPC(spaces);
                         printf("| | ");
-                        printf("\n          ( subtype: %d)", vt);
-                    } else
-                        printf(" SUBTYPE %d", vt);
-
-                    printf("\n");
-                } else if (literalType == DIS_LITERAL_DICTIONARY) {
-                    uint8_t kt = readWord((*prg)->program, pc);
-                    uint8_t vt = readWord((*prg)->program, pc);
-                    if (!config.alt_format_flag) {
-                        SPC(spaces);
-                        printf("| | ");
-                        printf("\n          ( subtype: [%d, %d] )", kt, vt);
-                    } else
-                        printf(" SUBTYPE %d,%d", kt, vt);
-
-                    printf("\n");
+                        printf("\n          ( subtype: %d)\n", vt);
+                    } else {
+                        char s[100];
+                        sprintf(s, " SUBTYPE %d\n", vt);
+                        str_append(&lit_str, s);
+                    }
                 } else
-                    printf("\n");
+                    if (literalType == DIS_LITERAL_DICTIONARY) {
+                        uint8_t kt = readWord((*prg)->program, pc);
+                        uint8_t vt = readWord((*prg)->program, pc);
+                        if (!config.alt_format_flag) {
+                            SPC(spaces);
+                            printf("| | ");
+                            printf("\n          ( subtype: [%d, %d] )\n\n\n", kt, vt);
+                        } else {
+                            char s[100];
+                            sprintf(s, " SUBTYPE %d,%d\n", kt, vt);
+                            str_append(&lit_str, s);
+                        }
+                    } else {
+                        if (!config.alt_format_flag)
+                            printf("\n");
+                        else
+                            str_append(&lit_str, "\n");
+                    }
 
                 LIT_ADD(literalType, literal_type, literal_count);
             }
@@ -677,12 +722,20 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     printf("| | ");
                     printf("[%05d] ( blank )\n", i);
                 } else {
-                    printf("    ");
-                    printf(".lit BLANK\n");
+                    str_append(&lit_str, "    .lit BLANK\n");
                 }
                 break;
         }
     }
+
+    if (!config.group_flag) {
+        printf(lit_str);
+    } else {
+        lit_t fn_str = (lit_t)(lit_fn_queue_rear->data);
+        fn_str->str = calloc(1, strlen(lit_str) + 1);
+        strcpy(fn_str->str, lit_str);
+    }
+    free(lit_str);
 
     consumeByte(DIS_OP_SECTION_END, (*prg)->program, pc);
 
@@ -731,8 +784,16 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     SPC(spaces);
                     printf("| | ");
                     printf("( fun %s [ start: %d, end: %d ] )", tree_local, fpc_start, fpc_end);
-                } else
-                    printf("\nLIT_FUN_%s:", tree_local);
+                } else {
+                    if (!config.group_flag)
+                        printf("\nLIT_FUN_%s:", tree_local);
+                    else {
+                        lit_t new_lit = malloc(sizeof(struct lit_s));
+                        new_lit->fun = calloc(1, strlen(tree_local) + 1);
+                        strcpy(new_lit->fun, tree_local);
+                        dis_enqueue((void*) new_lit, &lit_fn_queue_front, &lit_fn_queue_rear, &lit_fn_queue_len);
+                    }
+                }
 
                 if ((*prg)->program[*pc + size - 1] != DIS_OP_FN_END) {
                     printf("\nERROR: Failed to find function end\n");
@@ -758,7 +819,7 @@ static void dis_read_interpreter_sections(dis_program_t **prg, uint32_t *pc, uin
                     strcpy(fun->fun, tree_local);
                     fun->start = fpc_start;
                     fun->len = fpc_end;
-                    dis_enqueue((void*) fun, &function_queue_front, &function_queue_rear);
+                    dis_enqueue((void*) fun, &function_queue_front, &function_queue_rear, &function_queue_len);
                 }
 
                 fcnt++;
@@ -797,33 +858,87 @@ void disassemble(const char *filename, options_t config) {
 
     consumeByte(DIS_OP_SECTION_END, prg->program, &(prg->pc));
 
-    if (config.alt_format_flag)
-        printf("\nLIT_MAIN:");
-    dis_read_interpreter_sections(&prg, &(prg->pc), 0, "", config);
-    if (!config.alt_format_flag) {
-        printf("|\n| ");
-        printf("--- ( reading main code ) ---");
-    } else
-        printf("\nMAIN:");
-    dis_disassemble_section(&prg, prg->pc, prg->len, 0, false, config);
-    if (!config.alt_format_flag) {
-        printf("\n| ");
-        printf("--- ( end main code section ) ---");
-    } else
+    if (!config.group_flag) {
+        if (config.alt_format_flag)
+            printf("\nLIT_MAIN:");
+
+        dis_read_interpreter_sections(&prg, &(prg->pc), 0, "", config);
+
+        if (!config.alt_format_flag) {
+            printf("|\n| ");
+            printf("--- ( reading main code ) ---");
+        } else
+            printf("\nMAIN:");
+
+        dis_disassemble_section(&prg, prg->pc, prg->len, 0, false, config);
+
+        if (!config.alt_format_flag) {
+            printf("\n| ");
+            printf("--- ( end main code section ) ---");
+        } else
+            printf("\n");
+
+        if (config.alt_format_flag) {
+            while (function_queue_front != NULL) {
+                fun_code_t *fun = (fun_code_t*) function_queue_front->data;
+                printf("\nFUN_%s:", fun->fun);
+                free(fun->fun);
+
+                dis_disassemble_section(&prg, fun->start, fun->len, 0, true, config);
+
+                dis_dequeue(&function_queue_front, &function_queue_rear, &function_queue_len);
+                printf("\n");
+            }
+        }
+    } else {
+        config.alt_format_flag = true;
+
+        lit_t new_lit = malloc(sizeof(struct lit_s));
+        new_lit->fun = calloc(1, 6 * sizeof(char));
+        strcpy(new_lit->fun, "MAIN");
+        dis_enqueue((void*) new_lit, &lit_fn_queue_front, &lit_fn_queue_rear, &lit_fn_queue_len);
+
+        dis_read_interpreter_sections(&prg, &(prg->pc), 0, "", config);
         printf("\n");
 
-    if (config.alt_format_flag) {
-        while (function_queue_front != NULL) {
-            fun_code_t *fun = (fun_code_t*) function_queue_front->data;
-            printf("\nFUN_%s:", fun->fun);
-            free(fun->fun);
+        while (lit_fn_queue_front != NULL) {
+            lit_t litf = (lit_t) lit_fn_queue_front->data;
 
-            dis_disassemble_section(&prg, fun->start, fun->len, 0, true, config);
+            if (!strcmp(litf->fun, "MAIN")) {
+                printf("MAIN:\n");
+                printf("%s", litf->str);
+                dis_disassemble_section(&prg, prg->pc, prg->len, 0, false, config);
+                free(litf->fun);
+                free(litf->str);
+                dis_dequeue(&lit_fn_queue_front, &lit_fn_queue_rear, &lit_fn_queue_len);
+                printf("\n\n");
+                continue;
+            }
 
-            dis_dequeue(&function_queue_front, &function_queue_rear);
-            printf("\n");
+            printf("FUNCTION_%s:\n", litf->fun);
+            printf("%s", litf->str);
+
+            queue_node_t *fqf = function_queue_front;
+            while (fqf != NULL) {
+                fun_code_t *fun = (fun_code_t*) fqf->data;
+                if (!strcmp(fun->fun, litf->fun)) {
+                    dis_disassemble_section(&prg, fun->start, fun->len, 0, true, config);
+                    break;
+                }
+                fqf = fqf->next;
+            }
+
+            free(litf->fun);
+            free(litf->str);
+            dis_dequeue(&lit_fn_queue_front, &lit_fn_queue_rear, &lit_fn_queue_len);
+
+            printf("\n\n");
         }
 
+        while (function_queue_front != NULL) {
+            free(((fun_code_t*)(function_queue_front->data))->fun);
+            dis_dequeue(&function_queue_front, &function_queue_rear, &function_queue_len);
+        }
     }
 
     printf("\n");
